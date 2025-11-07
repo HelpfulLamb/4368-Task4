@@ -277,7 +277,7 @@ class ExperimentRunner:
     filtered.sort(key=lambda kv: (kv[1]["agg_q"], kv[1]["count"]), reverse=True)
     return OrderedDict(filtered)
 
-  def print_update_log(self, agent):  # TODO: use this for the path visualizer 
+  def print_update_log(self, agent):
     batch_size = 1000
     log = [entry for entry in self.system.update_log if entry["agent"] == agent]
     if not log:

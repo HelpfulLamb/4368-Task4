@@ -63,10 +63,11 @@ def run_RL():
     # TODO: analyze the learned path for experiment 2
     #rl_runner.analyze_learned_paths(result_2)
 
-    # print (one of the) Q-table for exp.2
+    # print one Q-table for exp.2
     print("\nQ-Table for Experiment 2:")
+    rl_runner.print_q_table('M')
     
-    # TODO: print Q-Table for either agent F or M
+    
 
   # running experiment 3
   print("\nExperiment 3: Tuning learning rate")
@@ -84,6 +85,7 @@ def run_RL():
 
       # TODO: print Q-table for both F and M agent
       print("\nQ-Table for Experiment 3:")
+      rl_runner.print_q_table('F')
 
   # running experiment 4
   print("\nExperiment 4: Adaptation to changes in pickup locations")
@@ -99,6 +101,7 @@ def run_RL():
 
     # TODO: print Q-table for experiment 4
     print("\nQ-Table for Experiment 4:")
+    rl_runner.print_q_table('F')
   
   # TODO: possible final analysis comparison
 
