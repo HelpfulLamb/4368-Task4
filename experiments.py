@@ -77,7 +77,7 @@ class ExperimentRunner:
     self.system.train_sarsa(phases=phases, n_steps=8000, max_steps_per_episode=1000, seed=seed, change_pickups_at_terminal=None)
     return self.get_performance_summary("2")
 
-  def experiment_3(self, seed, alpha, gamma):
+  def experiment_3(self, seed, alpha, gamma, learn_type="q"):
     self.system.performance_history.clear()
     self.system.update_log.clear()
     print(f"Running Experiment 3: alpha = {alpha}")
@@ -91,11 +91,13 @@ class ExperimentRunner:
       {"name": "random_500", "behavior": "PRandom", "steps": 500},
       {"name": "exploit_7500", "behavior": "PExploit", "steps": 7500}
     ]
-
-    self.system.train_qlearn(phases=phases, n_steps=8000, max_steps_per_episode=1000, seed=seed, change_pickups_at_terminal=None)
+    if learn_type == "s":
+      self.system.train_sarsa(phases=phases, n_steps=8000, max_steps_per_episode=1000, seed=seed, change_pickups_at_terminal=None)
+    else:
+      self.system.train_qlearn(phases=phases, n_steps=8000, max_steps_per_episode=1000, seed=seed, change_pickups_at_terminal=None)
     return self.get_performance_summary("3")
 
-  def experiment_4(self, seed, alpha, gamma):
+  def experiment_4(self, seed, alpha, gamma, learn_type='s'):
     self.system.performance_history.clear()
     self.system.update_log.clear()
     print("Running experiment 4")
@@ -109,8 +111,11 @@ class ExperimentRunner:
       {"name": "exploit_7500", "behavior": "PExploit", "steps": 7500}
     ]
 
-    # run SARSA but when we hit 3rd terminal state, we change the pickup locations only
-    self.system.train_sarsa(phases=phases, n_steps=8000, max_steps_per_episode=1000, seed=seed, change_pickups_at_terminal={"k": 3, "coords": [(1,2), (4,5)]})
+    # run SARSA or Q-Learn but when we hit 3rd terminal state, we change the pickup locations only
+    if learn_type == 's':
+      self.system.train_sarsa(phases=phases, n_steps=8000, max_steps_per_episode=1000, seed=seed, change_pickups_at_terminal={"k": 3, "coords": [(1,2), (4,5)]})
+    else:
+      self.system.train_qlearn(phases=phases, n_steps=8000, max_steps_per_episode=1000, seed=seed, change_pickups_at_terminal={"k": 3, "coords": [(1,2), (4,5)]})
     return self.get_performance_summary("4")
   
   # TODO: may add some more details idk

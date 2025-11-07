@@ -1,112 +1,118 @@
+import argparse
 from experiments import ExperimentRunner
 from two_agent_sys import TwoAgentRLSystem
 
-def run_RL():
+def run_exp_1(variant: str, runs=(1,2), alpha=0.3, gamma=0.5):
+  assert variant in {"a", "b", "c"}, "Experiment 1 variant must be a, b, or c"
   rl_runner = ExperimentRunner()
   all_results = []
-
-  # running experiment 1
-  print("Experiment 1: Q-learning with different policies")
-  
-  # two runs, each with different seeds
-  for run in [1, 2]:
-    print(f"--- run {run} ---")
-    rl_runner.system = TwoAgentRLSystem()  # reset system for a fresh start
-
-    # experiment 1.a
-    rl_runner.system = TwoAgentRLSystem()  # reset system for a fresh start
-    result_1a = rl_runner.experiment_1('a', seed=10 + run, alpha=0.3, gamma=0.5)  # seed updates for each run
-    all_results.append(result_1a)
-    # plot attractive paths for both agents in different states
-    #for agent in ['F', 'M']:
-    #  for carrying in [False, True]:
-    #    rl_runner.plot_attractive_path(agent, carrying, '1a', run=run, threshold=0)
-    rl_runner.plot_learning_curve('1a')
-
-    rl_runner.analyze_learned_paths(result_1a)
-    print("\nQ-Table for Experiment 1.a:")
-    #rl_runner.print_update_log('F')
-    #rl_runner.print_update_log('M')
-    rl_runner.print_q_table('F')
-
-    # experiment 1.b
-    rl_runner.system = TwoAgentRLSystem()  # reset system for a fresh start
-    result_1b = rl_runner.experiment_1('b', seed=10 + run, alpha=0.3, gamma=0.5)
-    all_results.append(result_1b)
-    rl_runner.analyze_learned_paths(result_1b)
-    print("\nQ-Table for Experiment 1.b:")
-    #rl_runner.print_update_log('F')
-    #rl_runner.print_update_log('M')
-
-    # experiment 1.c
-    rl_runner.system = TwoAgentRLSystem()  # reset system for a fresh start
-    result_1c = rl_runner.experiment_1('c', seed=10 + run, alpha=0.3, gamma=0.5)
-    all_results.append(result_1c)
-
-    # analyze learned path for 1.c
-    rl_runner.analyze_learned_paths(result_1c)
-    # print Q-table for 1.c for agent F
-    print("\nQ-Table for Experiment 1.c:")
-    #rl_runner.print_update_log('F')  # replace the current lines with rl_runner.print_q_table('F')
-    #rl_runner.print_update_log('M')  # replace the current lines with rl_runner.print_q_table('M')
-
-  # running experiment 2
-  print("\nExeriment 2: SARSA learning")
-  for run in [1, 2]:
-    print(f"--- run {run} ---")
+  if variant == "a":
+    policy = "PRANDOM"
+  elif variant == "b":
+    policy = "PGREEDY"
+  else:
+    policy = "PEXPLOIT"
+  print(f"Experiment 1: Q-Learning with Different Policies: {policy}")
+  for run in runs:
+    print(f"--- Run {run} ---")
     rl_runner.system = TwoAgentRLSystem()
+    result = rl_runner.experiment_1(variant, seed=10+run, alpha=alpha, gamma=gamma)
+    all_results.append(result)
 
-    # experiment 2
-    result_2 = rl_runner.experiment_2(seed=10 + run, alpha=0.3, gamma=0.5)
-    all_results.append(result_2)
+    # optional plot
 
-    # TODO: analyze the learned path for experiment 2
-    #rl_runner.analyze_learned_paths(result_2)
-
-    # print one Q-table for exp.2
-    print("\nQ-Table for Experiment 2:")
-    rl_runner.print_q_table('M')
-    
-    
-
-  # running experiment 3
-  print("\nExperiment 3: Tuning learning rate")
-  learning_rates = [0.15, 0.45]
-  for lr in learning_rates:
-    for run in [1, 2]:  # two runs for each learning rate
-      rl_runner.system = TwoAgentRLSystem()
-
-      # experiment 3
-      result_3 = rl_runner.experiment_3(seed=10 + run, alpha=lr, gamma=0.5)
-      all_results.append(result_3)
-
-      # TODO: analyze learned path for each alpha
-      #rl_runner.analyze_learned_paths(result_3)
-
-      # TODO: print Q-table for both F and M agent
-      print("\nQ-Table for Experiment 3:")
-      rl_runner.print_q_table('F')
-
-  # running experiment 4
-  print("\nExperiment 4: Adaptation to changes in pickup locations")
-  for run in [1, 2]:
-    rl_runner.system = TwoAgentRLSystem()
-
-    # experiment 4
-    result_4 = rl_runner.experiment_4(seed=10 + run, alpha=0.3, gamma=0.5)
-    all_results.append(result_4)
-
-    # TODO: analyze learned path
-    #rl_runner.analyze_learned_paths(result_4)
-
-    # TODO: print Q-table for experiment 4
-    print("\nQ-Table for Experiment 4:")
-    rl_runner.print_q_table('F')
-  
-  # TODO: possible final analysis comparison
-
+    rl_runner.analyze_learned_paths(result)
+    print(f"\nQ-Table for Experiment 1.{variant}")
+    rl_runner.print_q_table('F')  # change to M for other agent
   return all_results
+
+def run_exp_2(runs=(1,2), alpha=0.3, gamma=0.5):
+  rl_runner = ExperimentRunner()
+  all_results = []
+  print("Experiment 2: SARSA Learning")
+  for run in runs:
+    print(f"--- Run {run} ---")
+    rl_runner.system = TwoAgentRLSystem()
+    result = rl_runner.experiment_2(seed=10+run, alpha=alpha, gamma=gamma)
+    all_results.append(result)
+
+    # optional plot
+
+    rl_runner.analyze_learned_paths(result)
+    print("\nQ-Table for Experiment 2")
+    rl_runner.print_q_table('F')  # or M
+  return all_results
+
+def run_exp_3(runs=(1,2), learning_rates = (0.15, 0.45), gamma = 0.5, learning="q"):
+  rl_runner = ExperimentRunner()
+  all_results = []
+  if learning == 'q':
+    rl_type = "Q-Learn"
+  else:
+    rl_type = "SARSA"
+  print(f"Experiment 3: Tuning Learning Rates for {rl_type}")
+  for lr in learning_rates:  # 2 runs for each diff learning rate
+    for run in runs:
+      print(f"--- alpha = {lr}, Run {run} ---")
+      rl_runner.system = TwoAgentRLSystem()
+      result = rl_runner.experiment_3(seed=10+run, alpha=lr, gamma=gamma, learn_type=learning)
+      all_results.append(result)
+
+      # optional plot
+
+      print("\nQ-Table for Experiment 3")
+      rl_runner.print_q_table('F')  # or M
+  return all_results
+
+def run_exp_4(runs=(1,2), alpha=0.3, gamma=0.5, learning="s"):
+  rl_runner = ExperimentRunner()
+  all_results = []
+  if learning == 's':
+    rl_type = "SARSA"
+  else:
+    rl_type = "Q-Learn"
+  print(f"Experiment 4: Adaptation to Changes in Pickup Locations for {rl_type}")
+  for run in runs:
+    print(f"--- Run {run} ---")
+    rl_runner.system = TwoAgentRLSystem()
+    result = rl_runner.experiment_4(seed=10+run, alpha=alpha, gamma=gamma, learn_type=learning)
+    all_results.append(result)
+
+    # optional plot
+
+    print("\nQ-Table for Experiment 4")
+    rl_runner.print_q_table('F')  # or M
+  return all_results
+
+def parse_args():
+  parser = argparse.ArgumentParser(
+    description="Run specific RL experiments: 1a, 1b, 1c, 2, 3q, 3s, 4q, 4s"
+  )
+  parser.add_argument("which", choices=["1a", "1b", "1c", "2", "3q", "3s", "4q", "4s"], help="Experiment to run")
+  parser.add_argument("--runs", type=int, nargs="+", default=[1,2], help="Run ids to execute")
+  parser.add_argument("--alpha", type=float, default=0.3, help="Learning rate for experiments 1, 2, and 4")
+  parser.add_argument("--lrs", type=float, nargs="+", default=[0.15, 0.45])
+  parser.add_argument("--gamma", type=float, default=0.5, help="Discount factor")
+  return parser.parse_args()
+
+def main():
+  args = parse_args()
+  which = args.which
+  runs = tuple(args.runs)
+  if which.startswith("1"):
+    variant = which[-1]
+    run_exp_1(variant, runs=runs, alpha=args.alpha, gamma=args.gamma)
+  elif which.startswith("2"):
+    run_exp_2(runs=runs, alpha=args.alpha, gamma=args.gamma)
+  elif which.startswith("3"):
+    rl_type = which[-1]
+    run_exp_3(runs=runs, learning_rates=tuple(args.lrs), gamma=args.gamma, learning=rl_type)
+  elif which.startswith("4"):
+    rl_type = which[-1]
+    run_exp_4(runs=runs, alpha=args.alpha, gamma=args.gamma, learning=rl_type)
+  else:
+    raise ValueError(f"Unknown experiment '{which}'")
 
 # run the program
 if __name__ == "__main__":
-  results = run_RL()
+  main()
