@@ -80,7 +80,7 @@ class ExperimentRunner:
   def experiment_3(self, seed, alpha, gamma, learn_type="q"):
     self.system.performance_history.clear()
     self.system.update_log.clear()
-    print(f"Running Experiment 3: alpha = {alpha}")
+    print(f"Running Experiment 3: Learning Rate = {alpha}, Discount Factor = {gamma}")
 
     # setting a new alpha parameter to test
     self.system.alpha = alpha  # changing the alpha parameter only
@@ -304,53 +304,25 @@ class ExperimentRunner:
         qa = entry["q_after"]
         print(f"{s:<27} {a:<4} {s_prime:<27} {R:>3} {maxQ:>12.3f} {qb:>10.3f} {qa:>10.3f}")
   
-  def print_q_table(self, agent, max_states=100):
+  def print_q_table(self, agent, max_states=100, sort_by_best=False):  # instead of printing the first 100 entries, I am now displaying the top 100 q-values to see what it has learned
     q = self.system.q_tables[agent]
     header = ["N", "S", "E", "W", "PU", "DO"]
-    print(f"\nQ-Table for agent {agent} (non-zero states only, capped to {max_states})")
-    print("-" * 80)
+    # filtering out any non zero entries
+    nonzero_items = [(s, vals) for s, vals in q.items() if any(abs(v) > 1e-6 for v in vals)]
+    if sort_by_best:
+      # sort states by their highest Q-value (descending)
+      nonzero_items.sort(key=lambda kv: np.max(kv[1]), reverse=True)
+      print(f"Top {max_states} states by highest Q-Values for Agent {agent}")
+    else:
+      print(f"\nFirst {max_states} non-zero states for Agent {agent} ")
+    print("-" * 100)
     shown = 0
-    for s, vals in q.items():
-      if not any(abs(v) > 1e-6 for v in vals):
-        continue  # skip all-zero Qs
-      print(f"{s} -> {dict(zip(header, [f'{v:6.2f}' for v in vals]))}")
+    for s, vals in nonzero_items[:max_states]:
+      best_q = np.max(vals)
+      best_action = header[int(np.argmax(vals))]
+      print(f"{s} -> {dict(zip(header, [f'{v:6.2f}' for v in vals]))} | best = {best_action} ({best_q:6.2f})")
       shown += 1
-      if shown >= max_states:
-        print(f"... truncated after {max_states} states ...")
-        break
-
-  def plot_attractive_path(self, agent, carrying, experiment_name, run, threshold=None, arrow_stride=1, show_values=True):
-    pass
-
-  def plot_learning_curve(self, experiment_name):
-    """Plot learning curve showing rewards and blocks delivered over time"""
-    if not self.system.performance_history:
-        print("No performance data to plot")
-        return
-    
-    episodes = [ep["episode"] for ep in self.system.performance_history]
-    rewards = [ep["total_rewards"] for ep in self.system.performance_history]
-    blocks = [ep["blocks_delivered"] for ep in self.system.performance_history]
-    manhattan = [ep["avg_manhattan"] for ep in self.system.performance_history]
-    
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(12, 10))
-    
-    # Plot 1: Rewards
-    ax1.plot(episodes, rewards, 'b-', alpha=0.7, linewidth=1)
-    ax1.set_title(f'{experiment_name} - Learning Curve')
-    ax1.set_ylabel('Episode Reward')
-    ax1.grid(True, alpha=0.3)
-    
-    # Plot 2: Blocks delivered
-    ax2.plot(episodes, blocks, 'g-', alpha=0.7, linewidth=1)
-    ax2.set_ylabel('Blocks Delivered')
-    ax2.grid(True, alpha=0.3)
-    
-    # Plot 3: Manhattan distance (coordination)
-    ax3.plot(episodes, manhattan, 'r-', alpha=0.7, linewidth=1)
-    ax3.set_ylabel('Avg Manhattan Distance')
-    ax3.set_xlabel('Episode')
-    ax3.grid(True, alpha=0.3)
-    
-    plt.tight_layout()
-    plt.show()
+    if len(nonzero_items) > max_states:
+      print(f"... truncated after {max_states} states ...")
+    print(f"\nTotal non-zero states in Q-Table: {len(nonzero_items)}")
+    print("-" * 100)

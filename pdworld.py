@@ -6,7 +6,7 @@ class PDWorld:
     self.initial_F = (1, 3)
     self.initial_M = (5, 3)
     self.total_blocks = 10
-    self.blocks_at_pickup = {p:5 for p in self.pickup_locations}  # 5 blocks at each pickup location
+    self.blocks_at_pickup = {p:10 for p in self.pickup_locations}  # 10 blocks at each pickup location
     self.blocks_at_dropoff = {p:0 for p in self.dropoff_locations}  # each dropoff location starts with 0 blocks
     self.operators = [0, 1, 2, 3, 4, 5]  # 0 = North, 1 = South, 2 = East, 3 = West, 4 = Pickup, 5 = Dropoff
     self.F_pos = self.initial_F

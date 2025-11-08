@@ -15,7 +15,7 @@ class TwoAgentRLSystem:
     self.performance_history = []
     self.update_log = []  # for logging during execution, this helps with debugging
 
-  def preferred_action(self, carrying, applicable_op):
+  def preferred_action(self, carrying, applicable_op):  # check for a preferred action
     # prefer dropoff if carrying, otherwise prefer pickup if not carrying
     if carrying and 5 in applicable_op:
       return 5
@@ -23,7 +23,7 @@ class TwoAgentRLSystem:
       return 4
     return None
   
-  def PRandom(self, agent, state, applicable_op):
+  def PRandom(self, agent, state, applicable_op):  # random policy
     if not applicable_op:
       return None
     carrying = bool(state[4])
@@ -32,7 +32,7 @@ class TwoAgentRLSystem:
       return pref_action
     return random.choice(applicable_op)  # otherwise choose an operator randomly
 
-  def PExploit(self, agent, state, applicable_op):
+  def PExploit(self, agent, state, applicable_op):  # exploit policy
     if not applicable_op:
       return None
     carrying = bool(state[4])
@@ -43,7 +43,8 @@ class TwoAgentRLSystem:
     # otherwise get Q-value
     q_values = self.q_tables[agent][state]
     best_value = max(q_values[a] for a in applicable_op)  # get the highest q-value to apply applicable operator
-    best_ops = [a for a in applicable_op if q_values[a] == best_value]
+    eps = 1e-9
+    best_ops = [a for a in applicable_op if abs(q_values[a] - best_value) <= eps]
     if random.random() < 0.8:
       return random.choice(best_ops)  # choose among the best, this is the tie break
     else:
@@ -51,7 +52,7 @@ class TwoAgentRLSystem:
       # choose a different applicable op if possible
       return random.choice(other) if other else random.choice(applicable_op)
 
-  def PGreedy(self, agent, state, applicable_op):
+  def PGreedy(self, agent, state, applicable_op):  # greedy policy
     if not applicable_op:
       return None
     carrying = bool(state[4])
@@ -217,7 +218,7 @@ class TwoAgentRLSystem:
             world.reset_world()  # rebuild counts at new positions
             changed_layout = True
           if terminal_hits >= 6:  # stops after the 6th terminal hit
-            print("Reached 6th terminal hit, experiment 4 stops")
+            print("*** Reached 6th terminal hit, experiment 4 stops ***")
             break
 
         world.reset()
@@ -318,7 +319,7 @@ class TwoAgentRLSystem:
             world.reset_world()
             changed_layout = True
           if terminal_hits >= 6:  # stop the experiment after 6 terminals
-            print("Reached 6th terminal hit, experiment 4 stops")
+            print("*** Reached 6th terminal hit, experiment 4 stops ***")
             break
 
         world.reset()
@@ -326,5 +327,5 @@ class TwoAgentRLSystem:
         episode_rewards = 0
         episode_manhattan_dist = []
   
-  def manhattan_distance(self):
+  def manhattan_distance(self):  # manhattan distance used for analysis to see how close/separated the agents were in execution
     return abs(self.world.F_pos[0] - self.world.M_pos[0]) + abs(self.world.F_pos[1] - self.world.M_pos[1])
