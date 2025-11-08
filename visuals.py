@@ -58,8 +58,8 @@ class Visualizer:
     # draw arrows
     for (r,c), (a, qv) in per_cell.items():
       dx, dy = moves[a]
-      ax.arrow(c, r, dx*0.3, head_width=0.15, length_includes_head=True)
-      ax.text(c, r, f"{qv:.1f}", ha="center", va="center", fontsize=8, color="black")
+      ax.arrow(c, r, dx*0.3, dy*0.3, head_width=0.15, length_includes_head=True)
+      ax.text(c, r, f"{qv:.1f}", ha="center", va="center", fontsize=10, color="black")
     ax.set_title(f"{title} (agent = {agent})")
     plt.show()
   
