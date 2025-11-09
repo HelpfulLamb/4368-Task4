@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from collections import deque, OrderedDict, defaultdict
+from collections import deque, OrderedDict, defaultdict, Counter
 import numpy as np
 from two_agent_sys import TwoAgentRLSystem
 
@@ -118,7 +118,6 @@ class ExperimentRunner:
       self.system.train_qlearn(phases=phases, n_steps=8000, max_steps_per_episode=1000, seed=seed, change_pickups_at_terminal={"k": 3, "coords": [(1,2), (4,5)]})
     return self.get_performance_summary("4")
   
-  # TODO: may add some more details idk
   def assess_coordination(self, avg_manhattan):
     if avg_manhattan >= 5.0:  # agents stay far apart
       return "Excellent Coordination - agents work in different areas"  # maybe something else could be returned
@@ -186,6 +185,36 @@ class ExperimentRunner:
       if not carrying and pos in world.pickup_locations:
         break
     return steps if steps < max_steps else None
+  
+  def greedy_path_positions(self, agent, start_pos, carrying, ignore_blocking=True, max_steps=100):
+    world = self.system.world
+    q_table = self.system.q_tables[agent]
+    pos = start_pos
+    path = [pos]
+    while len(path) < max_steps:
+      if agent == 'F':
+        s = (pos[0], pos[1], world.M_pos[0], world.M_pos[1], int(carrying))
+        other_pos = None if ignore_blocking else world.F_pos
+      else:
+        s = (pos[0], pos[1], world.F_pos[0], world.F_pos[1], int(carrying))
+        other_pos = None if ignore_blocking else world.F_pos
+      applicable = world.aplop(pos, carrying, other_pos)
+      move_ops = [a for a in applicable if a in (0,1,2,3)]
+      if not move_ops:
+        break
+      q = q_table[s]
+      best_move = max(move_ops, key=lambda a: q[a])
+      delta = {0: (-1,0), 1: (1,0), 2: (0,1), 3: (0,-1)}
+      new_pos = (pos[0] + delta[best_move][0], pos[1] + delta[best_move][1])
+      if not world.valid_position(new_pos):
+        break
+      pos = new_pos
+      path.append(pos)
+      if carrying and pos in world.dropoff_locations:
+        break
+      if not carrying and pos in world.pickup_locations:
+        break
+    return path
 
   def analyze_learned_paths(self, label, ingnore_blocking=True):
     rows = []
@@ -326,3 +355,11 @@ class ExperimentRunner:
       print(f"... truncated after {max_states} states ...")
     print(f"\nTotal non-zero states in Q-Table: {len(nonzero_items)}")
     print("-" * 100)
+  
+  def most_frequent_success_path(self, agent):
+    paths = self.system.segment_logs.get(agent, [])
+    if not paths:
+      return None, 0
+    ctr = Counter(paths)
+    best_path, freq = ctr.most_common(1)[0]
+    return list(best_path), freq

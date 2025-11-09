@@ -12,6 +12,8 @@ class TwoAgentRLSystem:
       'F': defaultdict(lambda: np.zeros(6)),
       'M': defaultdict(lambda: np.zeros(6))
     }
+    self.segment_logs = {'F': [], 'M': []}  # list of paths
+    self.seg_active = {'F': None, 'M': None}  # current in progress path while carrying
     self.performance_history = []
     self.update_log = []  # for logging during execution, this helps with debugging
 
@@ -173,6 +175,7 @@ class TwoAgentRLSystem:
 
       # execute current agents action
       s_next, reward, done, _ = world.step(a, agent)
+      self.record_segment_step(agent, a, reward, s_next)
       episode_rewards += reward  # accumulate rewards
       episode_manhattan_dist.append(self.manhattan_distance())  # record manhattan distance for coordination analysis
 
@@ -274,6 +277,7 @@ class TwoAgentRLSystem:
       
       # execute the current agents action
       s_next, reward, done, _ = world.step(a, agent)
+      self.record_segment_step(agent, a, reward, s_next)
       episode_rewards += reward
       episode_manhattan_dist.append(self.manhattan_distance())
 
@@ -329,3 +333,22 @@ class TwoAgentRLSystem:
   
   def manhattan_distance(self):  # manhattan distance used for analysis to see how close/separated the agents were in execution
     return abs(self.world.F_pos[0] - self.world.M_pos[0]) + abs(self.world.F_pos[1] - self.world.M_pos[1])
+  
+  def record_segment_step(self, agent, action, reward, s_next):
+    if agent == 'F':
+      pos = (s_next[0], s_next[1])
+      carry = bool(s_next[4])
+    else:
+      pos = (s_next[0], s_next[1])  # if the agent is M, we can use its view
+      carry = bool(s_next[4])
+    if action == 4 and reward > 0:  # start a new path right after a successful pickup
+      self.seg_active[agent] = [pos]  # start at pickup cell
+    if self.seg_active[agent] is not None and action in (0,1,2,3):  # if currently carrying append position on moves
+      self.seg_active[agent].append(pos)
+    if self.seg_active[agent] is not None and action == 5 and reward > 0:  # close the path on a successful dropoff
+      path = tuple(self.seg_active[agent])
+      if len(path) >= 1:
+        self.segment_logs[agent].append(path)
+      self.seg_active[agent] = None
+
+

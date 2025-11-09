@@ -68,10 +68,40 @@ class Visualizer:
     steps = [ep['steps'] for ep in performance_history]
     fig, ax = plt.subplots(figsize=(10,4))
     ax.plot(episodes, steps, color="purple", alpha=0.7, linewidth=1)
-    ax.set_title(title)
+    ax.set_title(f"{title} - Run {run}")
     ax.set_xlabel("Episode")
     ax.set_ylabel("Steps")
     ax.grid(True, alpha=0.3)
     # optional smoothing
     plt.show()
 
+  def plot_path(self, path, pickups=None, dropoffs=None, start_F=None, start_M=None, title="Path", color=None):
+    if not path:
+      print("Empty path")
+      return
+    grid_h = grid_w = 5
+    fig, ax = plt.subplots()
+    ax.set_xlim(0.5, grid_w + 0.5)
+    ax.set_ylim(0.5, grid_h + 0.5)
+    ax.set_xticks(range(1, grid_w + 1))
+    ax.set_yticks(range(1, grid_h + 1))
+    ax.grid(True)
+    ax.set_aspect('equal')
+    ax.invert_yaxis()
+    # draw polyline
+    xs = [c for (r,c) in path]
+    ys = [r for (r,c) in path]
+    ax.plot(xs, ys, marker='o', linewidth=2, color=color)
+    if pickups:
+      ax.scatter([c for r,c in pickups], [r for r,c in pickups], marker='s', edgecolor="black", facecolor="none", label="Pickup")
+    if dropoffs:
+        ax.scatter([c for r,c in dropoffs],[r for r,c in dropoffs], marker="D", s=140, edgecolor="black", facecolor="none", label="Dropoff")
+    if start_F:
+        ax.scatter(start_F[1], start_F[0], marker="^", s=120, label="F start")
+    if start_M:
+        ax.scatter(start_M[1], start_M[0], marker="v", s=120, label="M start")
+    ax.set_title(title)
+    if pickups or dropoffs or start_F or start_M:
+        ax.legend(loc="upper right")
+    plt.tight_layout()
+    plt.show()

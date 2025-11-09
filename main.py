@@ -23,6 +23,7 @@ def run_exp_1(variant: str, runs=(1,2), alpha=0.3, gamma=0.5):
 
     # optional plot
     try:
+      plot.plot_q_arrows(rl_runner.system.q_tables['F'])
       plot.plot_learning_curve(rl_runner.system.performance_history, 'F', run=run)
       plot.plot_steps_per_episode(rl_runner.system.performance_history, 'F', run=run)
     except Exception as e:
@@ -46,6 +47,7 @@ def run_exp_2(runs=(1,2), alpha=0.3, gamma=0.5):
 
     # optional plot
     try:
+      plot.plot_q_arrows(rl_runner.system.q_tables['F'])
       plot.plot_learning_curve(rl_runner.system.performance_history, 'F', run=run)
       plot.plot_steps_per_episode(rl_runner.system.performance_history, 'F', run=run)
     except Exception as e:
@@ -74,8 +76,8 @@ def run_exp_3(runs=(1,2), learning_rates = (0.15, 0.45), gamma = 0.5, learning="
 
       # optional plot
       try:
-        plot.plot_learning_curve(rl_runner.system.performance_history, 'F', run=run)
-        plot.plot_steps_per_episode(rl_runner.system.performance_history, 'F', run=run)
+        plot.plot_learning_curve(rl_runner.system.performance_history, 'F', run=run, title=f"Learning Curve: alpha = {lr}")
+        plot.plot_steps_per_episode(rl_runner.system.performance_history, 'F', run=run, title=f"Steps per Episode: alpha = {lr}")
       except Exception as e:
         print(f"[plot warning]: {e}")
       
